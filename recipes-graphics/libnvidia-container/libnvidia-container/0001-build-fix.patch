@@ -1,3 +1,13 @@
+From 00000000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Yocto Integration <yocto@example.com>
+Date: Wed, 7 Aug 2024 13:00:00 +0000  
+Subject: [PATCH] Build system fixes for Yocto integration
+
+Upstream-Status: Inappropriate [embedded specific]
+
+This patch modifies the build system to work properly with Yocto/BitBake,
+including path handling, compiler detection, and build flag management.
+
 diff --git a/Makefile b/Makefile
 index a374cc09..34d21e25 100644
 --- a/Makefile

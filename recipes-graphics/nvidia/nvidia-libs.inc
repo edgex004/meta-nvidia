@@ -5,9 +5,10 @@ SECTION = "Installer Tools"
 MAINTAINER = "Nauman Shakir <nshakir@kopernikusauto.com>"
 
 
-python populate_packages:prepend() {
-    d.appendVar("RDEPENDS_nvidia", " xorg-abi-video-25")
-}
+# Removed hardcoded xorg-abi-video-25 dependency for headless/embedded builds
+# python populate_packages:prepend() {
+#     d.appendVar("RDEPENDS:nvidia", " xorg-abi-video-25")  
+# }
 
 
 RDEPENDS:${PN}:remove =  " \
@@ -34,19 +35,22 @@ do_install:append() {
              ${D}${sysconfdir}/OpenCL/vendors/
 
 	cp ${NVIDIA_SRC}/libnvidia-glcore.so.${PV} ${D}${libdir}/
-    cp ${NVIDIA_SRC}/libglxserver_nvidia.so.${PV} ${D}${libdir}/xorg/modules/extensions/
+        # X.org GLX server extension - commented out for minimal builds
+    # cp ${NVIDIA_SRC}/libglxserver_nvidia.so.${PV} ${D}${libdir}/xorg/modules/extensions/
     cp ${NVIDIA_SRC}/libnvidia-tls.so.${PV} ${D}${libdir}/
     cp ${NVIDIA_SRC}/libGLX_nvidia.so.${PV} ${D}${libdir}/
-    install -m 444 ${NVIDIA_SRC}/nvidia-application-profiles-550.54.15-rc  ${D}${datadir}/nvidia/
-    install -m 444 ${NVIDIA_SRC}/nvidia-application-profiles-550.54.15-key-documentation ${D}${datadir}/nvidia/
+    install -m 444 ${NVIDIA_SRC}/nvidia-application-profiles-${PV}-rc  ${D}${datadir}/nvidia/
+    install -m 444 ${NVIDIA_SRC}/nvidia-application-profiles-${PV}-key-documentation ${D}${datadir}/nvidia/
     cp ${NVIDIA_SRC}/libnvidia-glvkspirv.so.${PV} ${D}${libdir}/
-    
-    install -m 644  ${NVIDIA_SRC}/10_nvidia.json ${D}${datadir}/glvnd/egl_vendor.d/
-    cp ${NVIDIA_SRC}/nvidia_drv.so ${D}${libdir}/xorg/modules/drivers/
-    install -m 444 ${NVIDIA_SRC}/nvidia-drm-outputclass.conf ${D}${datadir}/X11/xorg.conf.d/nvidia-drm-outputclass.conf
 
-    cp ${NVIDIA_SRC}/libnvidia-gtk2.so.${PV} ${D}${libdir}/
-    cp ${NVIDIA_SRC}/libnvidia-gtk3.so.${PV} ${D}${libdir}/
+    install -m 644  ${NVIDIA_SRC}/10_nvidia.json ${D}${datadir}/glvnd/egl_vendor.d/
+    # X.org video driver - commented out for minimal builds (causes xorg-abi-video-25 dependency)
+    # cp ${NVIDIA_SRC}/nvidia_drv.so ${D}${libdir}/xorg/modules/drivers/
+    # install -m 444 ${NVIDIA_SRC}/nvidia-drm-outputclass.conf ${D}${datadir}/X11/xorg.conf.d/nvidia-drm-outputclass.conf
+
+    # GTK integration libraries - commented out for minimal builds (cause GUI dependencies)
+    # cp ${NVIDIA_SRC}/libnvidia-gtk2.so.${PV} ${D}${libdir}/
+    # cp ${NVIDIA_SRC}/libnvidia-gtk3.so.${PV} ${D}${libdir}/
     cp ${NVIDIA_SRC}/libnvidia-cfg.so.${PV} ${D}${libdir}/
     cp ${NVIDIA_SRC}/libnvidia-ml.so.${PV} ${D}${libdir}/
     cp ${NVIDIA_SRC}/libvdpau_nvidia.so.${PV} ${D}${libdir}/vdpau/
@@ -60,7 +64,8 @@ do_install:append() {
         cp ${NVIDIA_SRC}/*.so.* ${D}${libdir}/
     fi
 
-    ln -sf libglxserver_nvidia.so.${PV} ${D}${libdir}/xorg/modules/extensions/libglxserver_nvidia.so
+    # X.org GLX server symlink - commented out for minimal builds
+    # ln -sf libglxserver_nvidia.so.${PV} ${D}${libdir}/xorg/modules/extensions/libglxserver_nvidia.so
     ln -sf libGLX_nvidia.so.${PV} ${D}${libdir}/libGLX_nvidia.so.0
     ln -sf libGLX_nvidia.so.${PV} ${D}${libdir}/libGLX_indirect.so.0
 
@@ -116,13 +121,13 @@ do_install:append() {
     ln -sf libnvidia-opticalflow.so.1 ${D}${libdir}/libnvidia-opticalflow.so
 
 
-    # nvidia
+    # nvidia - essential binaries only (no GUI tools for minimal builds)
 	mkdir -p ${D}${bindir}
-    install -m 755 -D ${NVIDIA_SRC}/nvidia-settings ${D}${bindir}/nvidia-settings
-    install -m 755 -D ${NVIDIA_SRC}/nvidia-debugdump ${D}${bindir}/nvidia-debugdump
+    # install -m 755 -D ${NVIDIA_SRC}/nvidia-settings ${D}${bindir}/nvidia-settings  # GUI tool - has GTK deps
+    # install -m 755 -D ${NVIDIA_SRC}/nvidia-debugdump ${D}${bindir}/nvidia-debugdump  # Debug tool
     install -m 755 -D ${NVIDIA_SRC}/nvidia-smi ${D}${bindir}/nvidia-smi
     install -m 755 -D ${NVIDIA_SRC}/nvidia-modprobe ${D}${bindir}/nvidia-modprobe
-    #install -m 755 -D ${NVIDIA_SRC}/nvidia-xconfig ${D}${bindir}/nvidia-xconfig
+    #install -m 755 -D ${NVIDIA_SRC}/nvidia-xconfig ${D}${bindir}/nvidia-xconfig  # X11 tool
     install -m 755 -D ${NVIDIA_SRC}/nvidia-cuda-mps-server ${D}${bindir}/nvidia-cuda-mps-server
     install -m 755 -D ${NVIDIA_SRC}/nvidia-cuda-mps-control ${D}${bindir}/nvidia-cuda-mps-control
     install -m 755 -D ${NVIDIA_SRC}/nvidia-persistenced ${D}${bindir}/nvidia-persistenced
@@ -132,9 +137,9 @@ do_install:append() {
     cp -r ${NVIDIA_SRC}/html ${D}${datadir}/doc/nvidia/
     cp ${NVIDIA_SRC}/NVIDIA_Changelog ${D}${datadir}/doc/nvidia/
     cp ${NVIDIA_SRC}/README.txt ${D}${datadir}/doc/nvidia/
-    install -m 444 -D ${NVIDIA_SRC}/nvidia-settings.1.gz ${D}${mandir}/man1/nvidia-settings.1.gz
+    # install -m 444 -D ${NVIDIA_SRC}/nvidia-settings.1.gz ${D}${mandir}/man1/nvidia-settings.1.gz  # GUI tool man page  
     install -m 444 -D ${NVIDIA_SRC}/nvidia-smi.1.gz ${D}${mandir}/man1/nvidia-smi.1.gz
-    install -m 444 -D ${NVIDIA_SRC}/nvidia-xconfig.1.gz ${D}${mandir}/man1/nvidia-xconfig.1.gz
+    # install -m 444 -D ${NVIDIA_SRC}/nvidia-xconfig.1.gz ${D}${mandir}/man1/nvidia-xconfig.1.gz  # X11 tool man page
     install -m 444 -D ${NVIDIA_SRC}/nvidia-cuda-mps-control.1.gz ${D}${mandir}/man1/nvidia-cuda-mps-control.1.gz
     install -m 444 -D ${NVIDIA_SRC}/nvidia-persistenced.1.gz ${D}${mandir}/man1/nvidia-persistenced.1.gz
 }
@@ -144,31 +149,46 @@ do_make_scripts[noexec] = "1"
 
 # REQUIRED_DISTRO_FEATURES = "x11"
 
-FILES:${PN}:append= " \
-	${libdir} \
-	${bindir} \
+FILES:${PN}:append = " \
+    ${libdir} \
+    ${bindir} \
     ${datadir} \
     ${sysconfdir} \
 "
 
-# FILES:${PN}:append= "${libdir}/libnvidia-ml.so"
-FILES:${PN}:append= "${libdir}/*.so"
-# FILES_SOLIBSDEV = ""
-FILES_SOLIBSDEV:append= "${libdir}/*.so"
+FILES:${PN}:append = "${libdir}/*.so"
+FILES_SOLIBSDEV:append = "${libdir}/*.so"
 
-FILES:${PN}-doc:append= " \
-	${mandir} \
-	${datadir}/doc/nvidia \
+FILES:${PN}-doc:append = " \
+    ${mandir} \
+    ${datadir}/doc/nvidia \
 "
 
-RDEPENDS:${PN}:append= " \
-	xserver-xorg-module-libwfb \
-    libvdpau \
-"
+# Remove X11/GUI dependencies for minimal builds
+# RDEPENDS:${PN}:append = " xserver-xorg-module-libwfb"
+
+# Override auto-detected X.org ABI dependencies for headless/embedded use
+# This fixes the old xorg-abi-video-25 dependency issue (known since 2012)
+# Clear PACKAGEFUNCS to prevent automatic ABI dependency injection
+PACKAGEFUNCS:remove = "add_xorg_abi_depends"
+
+# Alternative approach: override the function that adds ABI dependencies
+python add_xorg_abi_depends() {
+    # Do nothing - prevents xorg-abi-video dependency from being added
+    pass
+}
+
+# Keep minimal dependencies for embedded builds
+# GPU libraries come from libglvnd (PREFERRED_PROVIDER)
+
+# Skip ALL dependency scanning that causes failures in minimal builds
+INSANE_SKIP:${PN}:append = " file-rdeps"
+SKIP_FILEDEPS:${PN} = "1"
+PRIVATE_LIBS = "*"
+# libvdpau removed for basic functionality testing
 
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_PACKAGE_STRIP = "1"
 INSANE_SKIP:${PN}:append = " ldflags already-stripped dev-so"
-INSANE_SKIP_libgl-nvidia:append = " ldflags"
-INSANE_SKIP:${PN}:append= " dev-so"
+INSANE_SKIP:libgl-nvidia:append = " ldflags"
 

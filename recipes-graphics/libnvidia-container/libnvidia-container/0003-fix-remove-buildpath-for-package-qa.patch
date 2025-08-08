@@ -3,6 +3,8 @@ From: Atharva Nandanwar <anandanwar@sighthound.com>
 Date: Fri, 19 Aug 2022 15:25:18 -0600
 Subject: [PATCH] fix: remove buildpath for package qa
 
+Upstream-Status: Inappropriate [embedded specific]
+
 * get EXTRA_CFLAGS for nvidia-modprobe
 ---
  mk/nvidia-modprobe.mk | 1 ++

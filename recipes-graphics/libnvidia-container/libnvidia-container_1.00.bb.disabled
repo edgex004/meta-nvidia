@@ -59,7 +59,7 @@ do_install() {
     ln -sf nvidia-container-runtime-hook ${D}${bindir}/nvidia-container-toolkit
 }
 
-FILES_${PN} += "/usr/local/bin /usr/local/lib"
+FILES:${PN} += "/usr/local/bin /usr/local/lib"
 
 RDEPENDS:${PN}:append = " ldconfig"
 

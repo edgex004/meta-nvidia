@@ -3,7 +3,9 @@ From: Matt Madison <matt@madison.systems>
 Date: Sun, 17 Mar 2024 09:33:12 -0700
 Subject: [PATCH] Fix cgo LDFLAGS for go 1.21 and later
 
-Upstream-Status: Pending
+Upstream-Status: Inappropriate [embedded specific]
+
+Fixes cgo LDFLAGS for go 1.21 and later in Yocto builds.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---

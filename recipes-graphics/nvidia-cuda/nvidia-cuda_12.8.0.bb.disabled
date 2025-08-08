@@ -1,0 +1,4 @@
+include nvidia-cuda-base.inc
+
+SRC_URI[md5sum] = "c71027cf1a4ce84f80b9cbf81116e767"
+SRC_URI[sha256sum] = "610867dcd6d94c4e36c4924f1d01b9db28ec08164e8af6c764f21b84200695f8"

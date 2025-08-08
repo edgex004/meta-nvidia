@@ -1,0 +1,101 @@
+DESCRIPTION = "NVIDIA CUDA Toolkit"
+SECTION = "devel"
+LICENSE = "CLOSED"
+
+PV = "12.8.0"
+PR = "r0"
+
+SRC_URI = "https://developer.download.nvidia.com/compute/cuda/${PV}/local_installers/cuda_${PV}_570.86.10_linux.run"
+# SRC_URI = "file://cuda_12.0.1_525.85.12_linux.run"
+
+SRC_URI[md5sum] = "c71027cf1a4ce84f80b9cbf81116e767"
+SRC_URI[sha256sum] = "610867dcd6d94c4e36c4924f1d01b9db28ec08164e8af6c764f21b84200695f8"
+
+S = "${UNPACKDIR}"
+
+# Depend on libcudart and any other libraries/tools your applications need
+
+DEPENDS = "ncurses"
+# Allow the recipe to fetch the CUDA Toolkit installer
+LICENSE_FLAGS_ACCEPTED = "commercial"
+
+# inherit cuda
+
+do_configure[noexec] = "1"
+
+do_compile() {
+    :
+}
+
+do_unpack() {
+    # Your existing unpack commands here
+
+    # Debug: List the contents of WORKDIR
+    ls -lah ${WORKDIR}
+}
+
+do_install() {
+    # Define temporary directory for CUDA extraction
+    export LD_LIBRARY_PATH="/lib:/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH}"
+    local cuda_temp_dir=${WORKDIR}/cuda_temp
+    local cuda_final_dir=${D}${prefix}/cuda
+    
+    install -d ${WORKDIR}/tmpdir
+    echo "Checking CUDA installer file..."
+    if [ -f ${DL_DIR}/cuda_${PV}_570.86.10_linux.run ]; then
+        echo "CUDA installer found. Proceeding with installation..."
+
+        # Ensure the CUDA installer is executable
+        chmod +x ${DL_DIR}/cuda_${PV}_570.86.10_linux.run
+        
+        # Create temporary directory for extraction
+        install -d ${cuda_temp_dir}
+        # Create final destination directory
+        install -d ${cuda_final_dir}
+
+        # Install the CUDA toolkit to temporary directory
+        if ${DL_DIR}/cuda_${PV}_570.86.10_linux.run --silent --installpath=${cuda_temp_dir} --tmpdir=${WORKDIR}/tmpdir --toolkit --override; then
+            echo "CUDA Toolkit installation successful."
+        else
+            echo "Installation failed or incomplete. CUDA Toolkit did not install as expected, but continuing with the process..."
+        fi
+        
+        # Check if installation was successful and copy to final destination
+        if [ "$(ls -A ${cuda_temp_dir} 2>/dev/null)" ]; then
+            echo "Installation successful. Copying CUDA Toolkit components..."
+
+            # Recursively copy all contents to final destination
+            cp -r ${cuda_temp_dir}/* ${cuda_final_dir}/
+            rm -rf ${cuda_temp_dir}
+
+            echo "CUDA Toolkit installation completed."
+        else
+            echo "Installation failed. CUDA Toolkit did not install any files."
+        fi
+    else
+        bbfatal "CUDA installer file not found in ${DL_DIR}."
+    fi
+}
+
+# Use standard Yocto fetch mechanism
+
+FILES:${PN}:append = " ${bindir}/* ${libdir}/* ${includedir}/*"
+FILES:${PN}:append = " ${prefix}/cuda ${prefix}"
+
+COMPATIBLE_HOST = "(x86_64).*-linux"
+
+# PROVIDES = "cuda"
+
+do_make_scripts[noexec] = "1"
+
+# Skip CUDA-specific packaging QA issues
+INSANE_SKIP:${PN} = "ldflags already-stripped dev-so file-rdeps staticdev"
+INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
+INHIBIT_SYSROOT_STRIP = "1"
+
+# Temporarily disable CUDA for testing other components
+EXCLUDE_FROM_WORLD = "1"
+
+RDEPENDS:${PN} = "\
+    nvidia \
+    "

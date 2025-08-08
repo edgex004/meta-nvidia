@@ -1,0 +1,3 @@
+#!/bin/sh
+RUNTIME_DIRECTORY=${RUNTIME_DIRECTORY:-/run/nvidia-container-runtime}
+nvidia-ctk config generate-default -o $RUNTIME_DIRECTORY/config.toml

@@ -1,138 +1,90 @@
-# Overview
+meta-nvidia (x86_64)
+====================
 
-The meta-nvidia layer provides support for NVIDIA graphics drivers and related components for Yocto Project-based distributions. This layer includes recipes for building the NVIDIA binary graphics driver, the GL Vendor-Neutral Dispatch library (libglvnd), and modifications to the mesa package to ensure compatibility with NVIDIA's proprietary drivers.
+This layer adds support for NVIDIA graphics cards using the upstream binary drivers. It's a pile of targeted hacks and may break your build in new and exciting ways. This layer makes no attempt to support any platform other than x86_64.
 
-![loaded-modules](artwork/loaded_modules.png)
-# Contents
+What this layer does (on purpose)
+- NVIDIA driver 570.x: kernel modules (`nvidia`, `nvidia-drm`, `nvidia-modeset`, `nvidia-uvm`) and core user-space bits
+- CUDA 12.8 (modular): a minimal set of CUDA libraries packaged separately (e.g. `libcuda`, `libcublas`, `libnpp`)
+- Containers: `docker-moby`, `containerd`, `nvidia-container-toolkit`, and sane defaults via `containerd-config`
+- Kernel config fragments to enable DRM/TTM helpers required by the NVIDIA DRM KMS stack
+- X.Org snippets for simple, non-wayland setups (optional)
 
-- Configuration: The layer.conf file contains the necessary configurations for the layer, including BBPATH, BBFILES, and other essential settings.
-- Custom Licenses: The custom-licenses directory contains custom license files that may be required by the recipes in this layer.
-- Recipes:
-    - libglvnd: Provides the GL Vendor-Neutral Dispatch library.
-    - mesa: Contains modifications to the mesa package to ensure compatibility with NVIDIA's proprietary drivers.
-    - nvidia: Contains recipes for building NVIDIA's binary graphics driver and related components.
+What this layer does not do (also on purpose)
+- Support non-x86_64 targets
+- Promise to work with any Yocto branch besides recent releases (tested on walnascar/5.2)
+- Provide full GUI apps like `nvidia-settings` out-of-the-box (kept lean for embedded)
+- Make QEMU magically grow a GPU (CUDA and real GL need real hardware)
 
-# Key Features
+Quick start
+1) Add the layer to `bblayers.conf` and ensure required dependencies are present:
+   - poky (meta, meta-poky, meta-yocto-bsp)
+   - meta-openembedded: `meta-oe`, `meta-networking`, `meta-filesystems`, `meta-python`
+   - `meta-virtualization`
 
-- libglvnd: The GL Vendor-Neutral Dispatch library allows multiple OpenGL implementations to coexist on the same system.
-- NVIDIA Binary Graphics Driver: Provides support for NVIDIA GPUs, enabling hardware-accelerated graphics, CUDA support, and other NVIDIA-specific features.
-- Mesa Modifications: Ensures that the open-source Mesa graphics library can coexist with NVIDIA's proprietary drivers.
+2) In `conf/local.conf`, keep it simple:
+```
+MACHINE ??= "genericx86-64"
 
-# Usage
-
-To use the meta-nvidia layer in your Yocto Project build:
-
-- Clone the meta-nvidia repository to your local machine.
-- Add the path to the meta-nvidia layer to your bblayers.conf file.
-- Include the desired recipes in your image or build them individually using bitbake.
-
-To use this layer, include it in your bblayers.conf and add the
-following to your BSP, distro, or local config:
-
-```bash
-DISTRO_FEATURES:append = " x11 opengl"
-DISTRO_FEATURES:remove = " wayland"
-IMAGE_INSTALL:append = " libxshmfence cmake"
-IMAGE_INSTALL:append = " packagegroup-core-buildessential"
-IMAGE_INSTALL:append = " acpid"
-IMAGE_INSTALL:append = " nvidia"
+# Prefer GLVND for libGL/EGL/GLES
 PREFERRED_PROVIDER_virtual/libgl = "libglvnd"
-PREFERRED_PROVIDER_virtual/libgles1 = "libglvnd"
-PREFERRED_PROVIDER_virtual/libgles3 = "libglvnd"
 PREFERRED_PROVIDER_virtual/egl = "libglvnd"
-PREFERRED_PROVIDER_virtual/libgl-native = "mesa-native"
-PREFERRED_PROVIDER_virtual/nativesdk-libgl = "nativesdk-mesa-gl"
-PREFERRED_PROVIDER_virtual/mesa = "libglvnd"
-KERNEL_MODULE_AUTOLOAD:append = " nvidia nvidia-drm nvidia-modeset nvidia-uvm"
-XSERVER = " \
-    ${XSERVER_X86_BASE} \
-    ${XSERVER_X86_EXT} \
-    ${XSERVER_X86_MODESETTING} \
-    nvidia"
+PREFERRED_PROVIDER_virtual/libgles1 = "libglvnd"
+PREFERRED_PROVIDER_virtual/libgles2 = "libglvnd"
+
+# Containers/runtime
+DISTRO_FEATURES:append = " virtualization"
+PREFERRED_PROVIDER_virtual/docker = "docker-moby"
+
+# Add the essentials to your image
+IMAGE_INSTALL:append = " \
+    kernel-modules \
+    nvidia \
+    cuda-libraries \
+    containerd-config \
+    nvidia-container-toolkit \
+    docker-moby \
+    docker-compose \
+    docker-registry \
+    libseccomp \
+"
+
+# If you want serial logs in QEMU
+APPEND += " console=ttyS0,115200"
 ```
 
-# Testing nvidia-container-toolkit and GPU Workloads
-
-- For testing nvidia-container-toolkit inside the container execute the following commands:
-
-```bash
-sudo ctr images pull docker.io/nvidia/cuda:12.0.0-base-ubuntu20.04
-
-sudo ctr run --rm --gpus 0 --runtime io.containerd.runc.v1 --privileged docker.io/nvidia/cuda:12.0.0-base-ubuntu20.04 nvidia-smi nvidia-smi
+3) Build and (optionally) boot in QEMU (no real GPU inside QEMU):
+```
+bitbake core-image-minimal
+runqemu genericx86-64 wic nographic slirp
 ```
 
-- For testing nvidia-container-toolkit with k3s
+Bring-up on real hardware (aka the fun part)
+- Flash the WIC image and boot your x86_64 machine with an NVIDIA GPU
+- Verify modules: `modprobe nvidia; lsmod | grep nvidia`
+- Check userspace: `nvidia-smi` (if present in your image) or `ldd /usr/lib/libcuda.so.*`
+- Containers with GPU: install runtime pieces and test with `nvidia-container-toolkit` (pull a CUDA base image, run `nvidia-smi` inside)
 
-```bash
-cat <<EOF | kubectl create -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: gpu
-spec:
-  restartPolicy: Never
-  runtimeClassName: nvidia
-  containers:
-    - name: gpu
-      image: "nvidia/cuda:12.0.0-base-ubuntu20.04"
-      command: [ "/bin/bash", "-c", "--" ]
-      args: [ "while true; do sleep 30; done;" ]
-      resources:
-        limits:
-          nvidia.com/gpu: 0
-EOF
+Notes
+- Kernel options are provided via a fragment enabling `CONFIG_DRM`, `CONFIG_DRM_KMS_HELPER`, `CONFIG_DRM_TTM`, `CONFIG_DRM_TTM_HELPER`, `CONFIG_DRM_VRAM_HELPER`, and FBDEV emulation helpers.
+- Mesa is expected to coexist with libglvnd; this layer prefers GLVND to keep provider conflicts at bay.
+- QEMU boots are for sanity-checks only; they will not validate GPU/CUDA.
 
-kubectl exec -it gpu -- nvidia-smi
-```
+Compatibility
+- Target: x86_64 (e.g. `genericx86-64`)
+- Yocto: tested with current branches (walnascar/5.2); older branches may work but are not supported here.
 
-- For testing a sample GPU workload in k3s
+Credits and lineage (a.k.a. who to blame)
+- Inspired by and based on:
+  - OakLabsInc meta-nvidia (pyro-era, gloriously honest README): [OakLabsInc/meta-nvidia](https://github.com/OakLabsInc/meta-nvidia)
+  - kopernikusauto meta-nvidia (newer take for mickledore): [kopernikusauto/meta-nvidia](https://github.com/kopernikusauto/meta-nvidia)
 
-```bash
-cat << EOF | kubectl create -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: cuda-vectoradd
-spec:
-  restartPolicy: OnFailure
-  runtimeClassName: nvidia
-  containers:
-  - name: cuda-vectoradd
-    image: "nvidia/samples:vectoradd-cuda11.2.1"
-    resources:
-      limits:
-         nvidia.com/gpu: 0
-EOF
-```
+Licensing
+- NVIDIA bits are under NVIDIA’s proprietary license (see `custom-licenses/NVIDIA-Proprietary`).
+- Everything else follows the licenses declared in individual recipes.
 
-# Dependencies
-
-This layer depends on following layers:
-
-    URI: git://git.yoctoproject.org/poky
-    layers: meta
-    branch: mickledore
-
-    URI: git://git.yoctoproject.org/meta-openembedded
-    layers: meta-oe
-    branch: mickledore
-
-    URI: git://git.yoctoproject.org/meta-virtualization
-    layers: meta-virtualization
-    branch: mickledore
+Bugs, footguns, and other adventures
+- If it works: great. If it doesn’t: welcome to graphics on embedded Linux.
+- PRs improving robustness without making it complicated are very welcome.
 
 
-# Compatibility
-
-The meta-nvidia layer is ONLY compatible with the "mickledore" series of the Yocto Project.
-
-# License
-
-The recipes in this layer are licensed under various licenses, including MIT, BSD, and NVIDIA's proprietary license. Please refer to the individual recipe files and the custom-licenses directory for detailed licensing information.
-Contributing
-
-Contributions to the meta-nvidia layer are welcome. Please ensure that any changes are tested with the target hardware and do not introduce regressions.
-
-# Disclaimer
-
-This layer is not officially supported by NVIDIA Corporation. It is based on meta-nvidia from deprecated [OakLabsInc](https://github.com/OakLabsInc/meta-nvidia). Always refer to NVIDIA's official documentation and support channels for information related to NVIDIA products.
