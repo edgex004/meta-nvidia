@@ -38,5 +38,3 @@ DEPENDS = " \
             "
 RDEPENDS:${PN}:append= " ldconfig-compatibility-symlink containerd-config"
 
-
-S = "${WORKDIR}/git"

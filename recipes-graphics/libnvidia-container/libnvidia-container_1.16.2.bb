@@ -10,7 +10,6 @@ HOMEPAGE = "https://github.com/NVIDIA/libnvidia-container"
 inherit go
 
 # Keep S stable; go.bbclass computes GO_SRCURI_DESTSUFFIX based on basename(S)
-S = "${WORKDIR}/git"
 
 GO_IMPORT = "github.com/NVIDIA/libnvidia-container"
 

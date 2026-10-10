@@ -15,4 +15,3 @@ DEPENDS = " \
             coreutils-native \
             "
 
-S = "${WORKDIR}/git"
