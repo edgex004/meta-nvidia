@@ -6,7 +6,7 @@ This layer adds support for NVIDIA graphics cards using the upstream binary driv
 What this layer does (on purpose)
 - NVIDIA driver 570.x: kernel modules (`nvidia`, `nvidia-drm`, `nvidia-modeset`, `nvidia-uvm`) and core user-space bits
 - CUDA 12.8 (modular): a minimal set of CUDA libraries packaged separately (e.g. `libcuda`, `libcublas`, `libnpp`)
-- Containers: `docker-moby`, `containerd`, `nvidia-container-toolkit`, and sane defaults via `containerd-config`
+- Containers: `docker-moby`, `containerd`, `nvidia-container-toolkit`, and sane defaults via `containerd_%.bbappend`
 - Kernel config fragments to enable DRM/TTM helpers required by the NVIDIA DRM KMS stack
 - X.Org snippets for simple, non-wayland setups (optional)
 
@@ -41,7 +41,6 @@ IMAGE_INSTALL:append = " \
     kernel-modules \
     nvidia \
     cuda-libraries \
-    containerd-config \
     nvidia-container-toolkit \
     docker-moby \
     docker-compose \
