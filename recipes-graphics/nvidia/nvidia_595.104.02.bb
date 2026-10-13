@@ -2,8 +2,8 @@ include nvidia-base.inc
 include nvidia-kernel-module.inc
 include nvidia-libs.inc
 
-SRC_URI[md5sum] = "27c62c49264e1a1da92ebcede9cf76bc"
-SRC_URI[sha256sum] = "2d43e64c581be5ef554de9888b1aa90037ef6d45f54284d3d9dcedc08dc4dc26"
+SRC_URI[md5sum] = "3763ad79a6ca5e95fef6fae3fd2344b2"
+SRC_URI[sha256sum] = "e421c202e4c79f58c3c7f3161bbe71454ebb3d88936f88205a0e327cd04c59ca"
 
 # Provide the generic meta-package name used in images (RPROVIDES)
 RPROVIDES:${PN} += "nvidia"
