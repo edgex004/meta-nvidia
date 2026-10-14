@@ -20,6 +20,7 @@ DEPENDS = " \
     elfutils \
     libtirpc \
     ldconfig-native \
+    curl-native \
 "
 LICENSE = "Apache-2.0 & MIT"
 
@@ -39,7 +40,7 @@ LIC_FILES_CHKSUM = "\
     file://src/${GO_IMPORT}/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION}/modprobe-utils/pci-sysfs.c;endline=25;md5=0449248350efd54938e7f8d25af965cb \
 "
 
-NVIDIA_MODPROBE_VERSION = "550.54.14"
+NVIDIA_MODPROBE_VERSION = "595.104.02"
 
 # Unpack nvidia-modprobe under the libnvidia-container source tree (deps/src/...)
 NVIDIA_MODPROBE_SRCURI_DESTSUFFIX = "${@os.path.join(os.path.basename(d.getVar('S')), 'src', d.getVar('GO_IMPORT'), 'deps', 'src', 'nvidia-modprobe-' + d.getVar('NVIDIA_MODPROBE_VERSION')) + '/'}"
@@ -48,10 +49,10 @@ SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=l
            git://github.com/NVIDIA/nvidia-modprobe.git;protocol=https;branch=main;name=modprobe;destsuffix=${NVIDIA_MODPROBE_SRCURI_DESTSUFFIX} \
 "
 
-# tag: v1.16.2
-SRCREV_libnvidia = "921e2f3197385173cf8670342e96e98afe9b3dd3"
-# Nvidia modprobe version 550.54.14
-SRCREV_modprobe = "149440ca0654d928f27df5ebff485a122bfe43b1"
+# tag: v1.19.1
+SRCREV_libnvidia = "7585946c6471402577e14474d7c56ca5be0348d7"
+# Nvidia modprobe version 595.104.02
+SRCREV_modprobe = "2ade29c1f805465ae9499fca43bde58c3f98d676"
 SRCREV_FORMAT = "libnvidia_modprobe"
 
 B = "${S}"
@@ -73,6 +74,10 @@ do_configure() {
 
 do_compile() {
     export TMPDIR="${GOTMPDIR}"
+    # HACK: move to the custom source subdirectory before running the makefile
+    cd "${WORKDIR}/sources/${GO_SRCURI_DESTSUFFIX}"
+    # HACK: modprobe source is pulled from git by bitbake, so the curl in the makefile can be skipped
+    touch deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION}/.download_stamp
     base_do_compile
 }
 

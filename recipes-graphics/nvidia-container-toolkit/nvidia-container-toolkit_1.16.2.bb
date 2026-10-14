@@ -45,7 +45,7 @@ LDFLAGS += "-Wl,-z,lazy"
 GO_LINKSHARED = ""
 
 GO_EXTRA_LDFLAGS:append = "\
-    -X github.com/NVIDIA/nvidia-container-toolkit/internal/info.version=1.16.2 \
+    -X github.com/NVIDIA/nvidia-container-toolkit/internal/info.version=1.19.1 \
     -X github.com/NVIDIA/nvidia-container-toolkit/internal/info.gitCommit=${SRCREV} \
 "
 
