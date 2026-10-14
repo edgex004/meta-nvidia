@@ -97,7 +97,7 @@ FILES:${PN}-dev = "${includedir} ${FILES_SOLIBSDEV} ${libdir}/*.la \
                 ${datadir}/aclocal ${base_libdir}/*.o \
                 ${libdir}/${BPN}/*.la ${base_libdir}/*.la \
                 ${libdir}/cmake ${datadir}/cmake"
-FILES:${PN}-staticdev = "${libdir}/*.a ${base_libdir}/*.a ${libdir}/${BPN}/*.a"
+FILES:${PN}-staticdev = "${libdir}/*.a ${base_libdir}/*.a ${libdir}/${BPN}/*.a /lib64"
 # - XXX
 INSANE_SKIP:${PN} = "already-stripped ldflags"
 RDEPENDS:${PN}:append = " ldconfig nvidia"
