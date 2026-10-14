@@ -85,6 +85,8 @@ do_install () {
     oe_runmake install DESTDIR=${D}
     # See note about licensing above
     find ${D}${datadir}/doc -type f -name 'COPYING*' -delete
+
+    ln --relative --symbolic ${D}${libdir} ${D}/lib64
 }
 
 PACKAGES =+ "${PN}-tools"
