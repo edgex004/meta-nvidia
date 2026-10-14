@@ -46,7 +46,7 @@ NVIDIA_MODPROBE_VERSION = "595.104.02"
 NVIDIA_MODPROBE_SRCURI_DESTSUFFIX = "${@os.path.join(os.path.basename(d.getVar('S')), 'src', d.getVar('GO_IMPORT'), 'deps', 'src', 'nvidia-modprobe-' + d.getVar('NVIDIA_MODPROBE_VERSION')) + '/'}"
 
 SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=libnvidia;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX} \
-           git://github.com/NVIDIA/nvidia-modprobe.git;protocol=https;branch=main;name=modprobe;destsuffix=${NVIDIA_MODPROBE_SRCURI_DESTSUFFIX} \
+           git://github.com/NVIDIA/nvidia-modprobe.git;protocol=https;branch=595;name=modprobe;destsuffix=${NVIDIA_MODPROBE_SRCURI_DESTSUFFIX} \
 "
 
 # tag: v1.19.1
