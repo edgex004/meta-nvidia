@@ -8,10 +8,10 @@ Upstream-Status: Inappropriate [embedded specific]
 Ensures seccomp is properly configured for Yocto build environment.
 
 diff --git a/Makefile b/Makefile
-index a374cc09..4c1edc13 100644
+index a374cc09..b6632580 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -20,21 +20,21 @@
+@@ -20,7 +20,7 @@
  WITH_NVCGO   ?= yes
  WITH_LIBELF  ?= no
  WITH_TIRPC   ?= no
@@ -19,5 +19,4 @@ index a374cc09..4c1edc13 100644
 +WITH_SECCOMP := yes
  
  ##### Global definitions #####
-
  
