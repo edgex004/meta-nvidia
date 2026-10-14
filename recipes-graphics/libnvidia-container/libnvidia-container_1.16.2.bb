@@ -16,7 +16,11 @@ DEPENDS = " \
     elfutils \
     libtirpc \
     ldconfig-native \
+    libseccomp \
 "
+
+inherit pkgconfig
+
 LICENSE = "Apache-2.0 & MIT"
 
 # Both source repositories include GPL COPYING (and for
@@ -55,6 +59,7 @@ SRCREV_FORMAT = "libnvidia_modprobe"
 B = "${S}"
 
 PACKAGECONFIG ??= ""
+PACKAGECONFIG:append = " seccomp"
 PACKAGECONFIG[seccomp] = "WITH_SECCOMP=yes,WITH_SECCOMP=no,libseccomp"
 
 # We need to link with libelf, otherwise we need to
@@ -89,6 +94,7 @@ do_install () {
     ln --relative --symbolic ${D}${libdir} ${D}/lib64
 }
 
+FILES:${PN}:append = " /lib64"
 PACKAGES =+ "${PN}-tools"
 FILES:${PN}-tools = "${bindir}"
 # XXX - go.bbclass rewrites these
@@ -97,7 +103,7 @@ FILES:${PN}-dev = "${includedir} ${FILES_SOLIBSDEV} ${libdir}/*.la \
                 ${datadir}/aclocal ${base_libdir}/*.o \
                 ${libdir}/${BPN}/*.la ${base_libdir}/*.la \
                 ${libdir}/cmake ${datadir}/cmake"
-FILES:${PN}-staticdev = "${libdir}/*.a ${base_libdir}/*.a ${libdir}/${BPN}/*.a /lib64"
+FILES:${PN}-staticdev = "${libdir}/*.a ${base_libdir}/*.a ${libdir}/${BPN}/*.a"
 # - XXX
 INSANE_SKIP:${PN} = "already-stripped ldflags"
 RDEPENDS:${PN}:append = " ldconfig nvidia"
