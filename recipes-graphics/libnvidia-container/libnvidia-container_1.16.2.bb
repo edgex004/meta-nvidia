@@ -43,6 +43,7 @@ SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=l
            git://github.com/NVIDIA/nvidia-modprobe.git;protocol=https;branch=main;name=modprobe;destsuffix=${NVIDIA_MODPROBE_SRCURI_DESTSUFFIX} \
            file://0001-OE-cross-build-fixups.patch \
            file://0002-fix-building-with-go-1-24.patch \
+           file://0003-secomp-fix.patch \
 "
 
 # tag: v1.16.2
